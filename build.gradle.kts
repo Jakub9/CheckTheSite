@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "de.reeii"
-version = "1.0"
+version = "1.0.1"
 
 application.mainClass = "de.reeii.checkthesite.MainKt"
 

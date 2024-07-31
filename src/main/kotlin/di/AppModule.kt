@@ -8,5 +8,5 @@ val appModule = module {
     single { ConfigurationService(get(), get()) }
     single { FileService() }
     single { ConsoleService() }
-    single { MailService(get(), get()) }
+    single { MailService(get(), get(), get()) }
 }

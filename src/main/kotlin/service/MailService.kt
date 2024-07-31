@@ -2,6 +2,7 @@ package de.reeii.checkthesite.service
 
 import de.reeii.checkthesite.checker.SiteChecker
 import de.reeii.checkthesite.model.Configuration
+import de.reeii.checkthesite.model.ConsoleCommand
 import de.reeii.checkthesite.model.MailData
 import de.reeii.checkthesite.model.RequestResult
 import de.reeii.checkthesite.util.ExitReason
@@ -24,11 +25,26 @@ private val logger = KotlinLogging.logger {}
 /**
  * Service for sending out mails.
  */
-class MailService(private val configurationService: ConfigurationService, private val requestService: RequestService) {
+class MailService(
+    private val configurationService: ConfigurationService,
+    private val requestService: RequestService,
+    consoleService: ConsoleService
+) {
 
     private lateinit var mailData: MailData
     private lateinit var siteChecker: SiteChecker<Any>
     private lateinit var session: Session
+
+    init {
+        consoleService.registerCommands(
+            this::class,
+            ConsoleCommand(
+                "testmail",
+                "Sends a test email to check whether the mail service is correctly configured",
+                ::sendTestMail
+            )
+        )
+    }
 
     /**
      * Initializes the mail service with the data in [Configuration.mailData].
@@ -99,5 +115,18 @@ class MailService(private val configurationService: ConfigurationService, privat
             }
         }
         logger.info { "Registered MailService to react on HTTP requests" }
+    }
+
+    private fun sendTestMail() {
+        if (!this::session.isInitialized) {
+            logger.info { "Mail service isn't initialized, command aborted" }
+            return
+        }
+        logger.info { "Sending a test email with exactly the same data like regular emails" }
+        try {
+            sendMail()
+        } catch (e: Throwable) {
+            logger.error(e) { "Error while sending mail" }
+        }
     }
 }

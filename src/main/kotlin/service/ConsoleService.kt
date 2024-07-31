@@ -14,9 +14,10 @@ private val logger = KotlinLogging.logger {}
  */
 class ConsoleService {
 
-    private val baseCommands = arrayOf(ConsoleCommand("exit", "Exits the program") {
-        exitProgram(ExitReason.USER)
-    })
+    private val baseCommands = arrayOf(
+        ConsoleCommand("exit", "Exits the program") { exitProgram(ExitReason.USER) },
+        ConsoleCommand(listOf("help", "h"), "Prints a list of all commands", ::printHelp)
+    )
 
     private val scanner = Scanner(System.`in`)
     private val allCommands = mutableListOf<ConsoleCommand>()
@@ -51,10 +52,6 @@ class ConsoleService {
     }
 
     private fun handleInput(line: String) {
-        if (line in arrayOf("help", "h")) {
-            printHelp()
-            return
-        }
         for (command in allCommands) {
             if (command.commands.contains(line)) {
                 command.execute()
@@ -67,10 +64,11 @@ class ConsoleService {
     private fun printHelp() {
         val nullSource = "null"
         val longestSource = allCommands.maxOfOrNull { it.source?.simpleName?.length ?: nullSource.length } ?: 0
-        allCommands.sortedBy { it.source?.simpleName }.forEach {
-            val sourceName = it.source?.simpleName ?: nullSource
-            println("%-${longestSource + 2}s %s".format("[$sourceName]", it.commands.joinToString()))
-            println(it.description)
+        allCommands.groupBy { it.source?.simpleName ?: nullSource }.forEach { (sourceName, commands) ->
+            commands.forEach {
+                println("%-${longestSource + 2}s %s".format("[$sourceName]", it.commands.joinToString()))
+                println(it.description)
+            }
         }
     }
 }
